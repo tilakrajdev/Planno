@@ -45,7 +45,7 @@ export const SignUpCard = () =>{
     };
 
     return(
-        <Card className="w-full h-full md:w-[487px] border-none shadow-none">
+        <Card className="w-full h-full md:w-121.75 border-none shadow-none">
             {isError && <div className="text-red-500 text-center mb-2">{error?.message || "Registration failed"}</div>}
             <CardHeader className="flex flex-col items-center justify-center text-center p-5">
                 <CardTitle className="text-3xl font-bold">
@@ -141,6 +141,6 @@ export const SignUpCard = () =>{
                     </Link>
                 </p>
             </CardContent>
-        </Card>>
+        </Card>
     )
 }

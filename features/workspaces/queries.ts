@@ -1,26 +1,15 @@
 'use server';
 
-import { cookies } from "next/headers";
-import {  Account, Client, Databases, Query } from "node-appwrite";
-import { AUTH_COOKIE } from "../auth/constants";
+import {  Query } from "node-appwrite";
+
 import { DATABASE_ID, MEMBERS_ID, WORKSPACES_ID } from "@/config";
 import { getMember } from "../members/utils";
 import { Workspace } from "./types";
+import { createSessionClient } from "@/lib/appwrite";
 
 export const getWorkspaces = async () => {
   try {
-    const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
-
-    const cookieStore = await cookies();
-    const session = cookieStore.get(AUTH_COOKIE);
-
-    if (!session) return {documents: [], total: 0};
-
-    client.setSession(session.value);
-    const databases = new Databases(client);
-    const account = new Account(client);
+    const {databases, account} = await createSessionClient();
     const user = await account.get();
 
     const members = await databases.listDocuments(
@@ -43,11 +32,22 @@ export const getWorkspaces = async () => {
                 Query.contains("$id", workspaceIds)
         ],
     );
-    return workspaces;
+    // Convert Appwrite documents → plain objects
+    const safeWorkspaces = workspaces.documents.map((workspace) => ({
+      $id: workspace.$id,
+      name: workspace.name,
+      imageUrl: workspace.imageUrl ?? "",
+      inviteCode: workspace.inviteCode ?? "",
+      userId: workspace.userId ?? "",
+    }));
+
+    return {
+      documents: safeWorkspaces,
+      total: safeWorkspaces.length,
+    };
 
   } catch (error) {
     console.error("Auth error:", error);
-    // redirect("/sign-in")
     return {documents: [], total: 0};
   }
 };
@@ -58,18 +58,7 @@ interface GetWorkspaceProps{
 
 export const getWorkspace = async ({workspaceId}: GetWorkspaceProps) => {
   try {
-    const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!);
-
-    const cookieStore = await cookies();
-    const session = cookieStore.get(AUTH_COOKIE);
-
-    if (!session) return null;
-
-    client.setSession(session.value);
-    const databases = new Databases(client);
-    const account = new Account(client);
+    const {databases, account} = await createSessionClient();
     const user = await account.get();
 
     const member = await getMember({
@@ -82,14 +71,25 @@ export const getWorkspace = async ({workspaceId}: GetWorkspaceProps) => {
       return null;
     }
 
-    const workspace = await databases.getDocument<Workspace>(
-        DATABASE_ID,
-        WORKSPACES_ID,
-        workspaceId,
+    const workspace = await databases.getDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId
     );
-    return workspace;
 
-  } catch {
+    // Convert Appwrite document → plain object
+    const safeWorkspace: Workspace = {
+      $id: workspace.$id,
+      name: workspace.name,
+      imageUrl: workspace.imageUrl ?? "",
+      inviteCode: workspace.inviteCode ?? "",
+      userId: workspace.userId ?? "",
+    };
+
+    return safeWorkspace;
+
+  } catch (error) {
+      console.error("Workspace fetch error:", error);
       return null;
   }
 };
