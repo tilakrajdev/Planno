@@ -93,3 +93,28 @@ export const getWorkspace = async ({workspaceId}: GetWorkspaceProps) => {
       return null;
   }
 };
+
+
+
+interface GetWorkspaceInfoProps{
+  workspaceId: string;
+};
+
+export const getWorkspaceInfo = async ({workspaceId}: GetWorkspaceInfoProps) => {
+  try {
+    const {databases} = await createSessionClient();
+
+
+    const workspace = await databases.getDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId
+    );
+
+    return workspace.name;
+
+  } catch (error) {
+      console.error("Workspace fetch error:", error);
+      return null;
+  }
+};
