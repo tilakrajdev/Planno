@@ -1,12 +1,12 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef } from "react";
+import { use, useRef } from "react";
 import {ArrowLeftIcon, CopyIcon, ImageIcon} from "lucide-react";
 import {Input} from "@/components/ui/input"
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { updateWorkspaceSchema } from "../schemas";
+import { updateProjectSchema } from "../schemas";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {
     Form,
@@ -24,21 +24,21 @@ import { Avatar,
 } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Workspace } from "../types";
-import { useUpdateWorkspace } from "../api/use-update-workspace";
+import { Project } from "../types";
+import { useUpdateProject } from "../api/use-update-project";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useDeleteWorkspace } from "../api/use-delete-workspace.ts";
 import { toast } from "sonner";
 import { useResetInviteCode } from "../api/use-reset-invite-code.ts";
 
-interface EditWorkspaceFormProps {
+interface EditProjectFormProps {
     onCancel?: () => void;
-    initialValues: Workspace;
+    initialValues: Project;
 }
 
-export const EditWorkspaceForm = ({onCancel, initialValues}: EditWorkspaceFormProps) => {
+export const EditProjectForm = ({onCancel, initialValues}: EditProjectFormProps) => {
     const router = useRouter();
-    const {mutate, isPending} = useUpdateWorkspace();
+    const {mutate, isPending} = useUpdateProject();
     const {
         mutate: resetInviteCode,
         isPending: isResettingInviteCode
